@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+
+# Maven
+target/
+!target/*.jar
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE
+.idea
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# Documentation
+README.md
+HELP.md
+*.md
+
+# Logs
+*.log
+logs/
+
+# Test files
+**/test/
+**/tests/
+**/testing/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Other
+*.swp
+*.swo
+.DS_Store 
