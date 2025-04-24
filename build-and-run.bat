@@ -24,7 +24,7 @@ if "%DOCKER_APP_NAME%"=="" (
 )
 
 echo Building Docker image...
-docker build -t %DOCKER_USERNAME%/%DOCKER_APP_NAME%:latest .
+docker build -t %DOCKER_USERNAME%/%DOCKER_APP_NAME%:latest ./server/.
 if %ERRORLEVEL% neq 0 (
     echo Docker build failed
     exit /b %ERRORLEVEL%
