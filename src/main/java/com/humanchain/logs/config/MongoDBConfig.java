@@ -10,6 +10,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+/**
+ * Configuration class for MongoDB connection and setup.
+ * Handles the creation of MongoDB client and template beans.
+ *
+ * @author Vikas Singh
+ * @since 1.0
+ */
 @Configuration
 public class MongoDBConfig {
 
@@ -18,6 +25,12 @@ public class MongoDBConfig {
     @Value("${spring.data.mongodb.uri}")
     private String mongoUri;
 
+    /**
+     * Creates and configures a MongoDB client
+     *
+     * @return Configured MongoClient instance
+     * @throws MongoException if connection to MongoDB fails
+     */
     @Bean
     public MongoClient mongoClient() {
         try {
@@ -34,8 +47,14 @@ public class MongoDBConfig {
         }
     }
 
+    /**
+     * Creates a MongoTemplate instance for database operations
+     *
+     * @param mongoClient The MongoClient instance to use
+     * @return Configured MongoTemplate instance
+     */
     @Bean
     public MongoTemplate mongoTemplate(MongoClient mongoClient) {
         return new MongoTemplate(mongoClient, "logs");
     }
-} 
+}
