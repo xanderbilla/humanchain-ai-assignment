@@ -1,0 +1,13 @@
+services:
+  logs-server-app:
+    image: ${DOCKER_USERNAME}/${DOCKER_APP_NAME}:latest
+    ports:
+      - "${APP_PORT}:8080"
+    env_file:
+      - .env
+    networks:
+      - logs-network
+
+networks:
+  logs-network:
+    driver: bridge
