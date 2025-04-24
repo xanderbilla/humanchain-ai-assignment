@@ -183,13 +183,9 @@ mvn clean package
 docker-compose up
 ```
 
-## Contributing
+## Author
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+[**Vikas Singh**](https://github.com/xanderbilla)
 
 ## License
 
@@ -198,7 +194,3 @@ This project is proprietary and confidential. It was developed as part of HumanC
 **IMPORTANT**: This code and its associated documentation are subject to the terms of the assignment. Unauthorized copying, distribution, or use of this project without explicit written permission from HumanChain AI is strictly prohibited.
 
 For detailed terms and conditions, please refer to the [LICENSE](LICENSE) file.
-
-## Contact
-
-For any questions or concerns regarding the use of this project, please contact the HumanChain AI team.
