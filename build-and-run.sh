@@ -22,7 +22,7 @@ if [ -z "$DOCKER_APP_NAME" ]; then
 fi
 
 echo "Building Docker image..."
-docker build -t $DOCKER_USERNAME/$DOCKER_APP_NAME:latest .
+docker build -t $DOCKER_USERNAME/$DOCKER_APP_NAME:latest ./server/.
 if [ $? -ne 0 ]; then
     echo "Docker build failed"
     exit $?
