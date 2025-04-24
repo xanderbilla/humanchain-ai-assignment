@@ -1,7 +1,11 @@
 package com.humanchain.logs.controller;
 
+import com.humanchain.logs.dto.AIIncidentCreateDTO;
+import com.humanchain.logs.dto.AIIncidentDTO;
 import com.humanchain.logs.model.AIIncident;
+import com.humanchain.logs.model.ApiResponse;
 import com.humanchain.logs.service.AIIncidentService;
+import com.humanchain.logs.validation.AIIncidentValidator;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,57 +15,145 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+/**
+ * REST Controller for managing AI Incidents.
+ * Provides endpoints for CRUD operations on AI incidents.
+ *
+ * @author Vikas Singh
+ * @since 1.0
+ */
 @RestController
-@RequestMapping("/incidents")
+@RequestMapping("/api/v1/incidents")
 public class AIIncidentController {
 
     private static final Logger logger = LoggerFactory.getLogger(AIIncidentController.class);
     private final AIIncidentService service;
+    private final AIIncidentValidator validator;
 
-    public AIIncidentController(AIIncidentService service) {
+    /**
+     * Constructs a new AIIncidentController with required dependencies
+     *
+     * @param service   The service layer for AI incident operations
+     * @param validator The validator for AI incident data
+     */
+    public AIIncidentController(AIIncidentService service, AIIncidentValidator validator) {
         this.service = service;
+        this.validator = validator;
     }
 
+    /**
+     * Retrieves all AI incidents from the database
+     *
+     * @return ResponseEntity containing a list of all incidents or an empty list
+     *         with appropriate message
+     */
     @GetMapping
-    public ResponseEntity<List<AIIncident>> getAllIncidents() {
+    public ResponseEntity<ApiResponse<List<AIIncidentDTO>>> getAllIncidents() {
         logger.info("Fetching all incidents");
-        return ResponseEntity.ok(service.getAllIncidents());
+        List<AIIncident> incidents = service.getAllIncidents();
+
+        if (incidents.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success(List.of(), "No incidents found in the database"));
+        }
+
+        List<AIIncidentDTO> dtos = incidents.stream()
+                .map(AIIncidentDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(dtos, "Successfully retrieved all incidents"));
     }
 
+    /**
+     * Retrieves a specific incident by its ID
+     *
+     * @param id The ID of the incident to retrieve
+     * @return ResponseEntity containing the incident if found, or appropriate error
+     *         message
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getIncidentById(@PathVariable String id) {
-        logger.info("Fetching incident with id: {}", id);
+    public ResponseEntity<ApiResponse<AIIncidentDTO>> getIncidentById(@PathVariable String id) {
         try {
             ObjectId objectId = new ObjectId(id);
             Optional<AIIncident> incident = service.getIncidentById(objectId);
-            return incident.map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
+
+            if (incident.isEmpty()) {
+                logger.warn("Incident not found with id: {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.notFound("No incident found with id: " + id));
+            }
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success(
+                            AIIncidentDTO.fromEntity(incident.get()),
+                            "Successfully retrieved incident"));
         } catch (IllegalArgumentException e) {
             logger.error("Invalid ObjectId format: {}", id);
-            return ResponseEntity.badRequest()
-                    .body("Invalid ID format. Please provide a valid MongoDB ObjectId");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Invalid ID format. Please provide a valid MongoDB ObjectId"));
         }
     }
 
+    /**
+     * Creates a new AI incident
+     *
+     * @param incidentDTO The incident data to create
+     * @return ResponseEntity containing the created incident or validation error
+     *         message
+     */
     @PostMapping
-    public ResponseEntity<AIIncident> createIncident(@RequestBody AIIncident incident) {
-        logger.info("Creating new incident: {}", incident.getTitle());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(service.createIncident(incident));
+    public ResponseEntity<ApiResponse<String>> createIncident(@RequestBody AIIncidentCreateDTO incidentDTO) {
+        var validationResult = validator.validate(incidentDTO);
+        if (!validationResult.isValid()) {
+            logger.warn("Validation failed: {}", validationResult.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(validationResult.getMessage()));
+        }
+
+        try {
+            AIIncident incident = incidentDTO.toEntity();
+            AIIncident createdIncident = service.createIncident(incident);
+            String incidentId = createdIncident.getId().toHexString();
+            logger.info("Created incident with id: {}", incidentId);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success(incidentId, "Incident created successfully with id: " + incidentId));
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid severity value: {}", incidentDTO.getSeverity());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Invalid severity value. Allowed values are: LOW, MEDIUM, HIGH"));
+        }
     }
 
+    /**
+     * Deletes an incident by its ID
+     *
+     * @param id The ID of the incident to delete
+     * @return ResponseEntity with success message or appropriate error message
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteIncident(@PathVariable String id) {
-        logger.info("Deleting incident with id: {}", id);
+    public ResponseEntity<ApiResponse<String>> deleteIncident(@PathVariable String id) {
         try {
             ObjectId objectId = new ObjectId(id);
+            Optional<AIIncident> existingIncident = service.getIncidentById(objectId);
+
+            if (existingIncident.isEmpty()) {
+                logger.warn("Attempted to delete non-existent incident with id: {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.notFound("Cannot delete, no incident found with id: " + id));
+            }
+
             service.deleteIncident(objectId);
-            return ResponseEntity.noContent().build();
+            logger.info("Deleted incident with id: {}", id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success(id, "Incident deleted successfully with id: " + id));
         } catch (IllegalArgumentException e) {
             logger.error("Invalid ObjectId format: {}", id);
-            return ResponseEntity.badRequest()
-                    .body("Invalid ID format. Please provide a valid MongoDB ObjectId");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Invalid ID format. Please provide a valid MongoDB ObjectId"));
         }
     }
 }
