@@ -1,6 +1,7 @@
 package com.humanchain.logs.controller;
 
 import com.humanchain.logs.config.TestMongoDBConfig;
+import com.humanchain.logs.dto.AIIncidentCreateDTO;
 import com.humanchain.logs.dto.AIIncidentDTO;
 import com.humanchain.logs.model.AIIncident;
 import com.humanchain.logs.model.ApiResponse;
@@ -49,6 +50,7 @@ class AIIncidentControllerTest {
 
     private AIIncident testIncident;
     private AIIncidentDTO testIncidentDTO;
+    private AIIncidentCreateDTO testIncidentCreateDTO;
     private ObjectId testId;
     private String testIdString;
 
@@ -65,6 +67,11 @@ class AIIncidentControllerTest {
         testIncident.setReportedAt(LocalDateTime.now());
 
         testIncidentDTO = AIIncidentDTO.fromEntity(testIncident);
+
+        testIncidentCreateDTO = new AIIncidentCreateDTO();
+        testIncidentCreateDTO.setTitle("Test Incident");
+        testIncidentCreateDTO.setDescription("Test Description");
+        testIncidentCreateDTO.setSeverity(AIIncident.Severity.HIGH);
     }
 
     @Test
@@ -149,36 +156,36 @@ class AIIncidentControllerTest {
     @Test
     void createIncident_WithValidData_ShouldCreateIncident() {
         // Arrange
-        when(validator.validate(any()))
+        when(validator.validate(any(AIIncidentCreateDTO.class)))
                 .thenReturn(new AIIncidentValidator.ValidationResult(true, "Validation successful"));
         when(service.createIncident(any())).thenReturn(testIncident);
 
         // Act
-        ResponseEntity<ApiResponse<AIIncidentDTO>> response = controller.createIncident(testIncidentDTO);
+        ResponseEntity<ApiResponse<String>> response = controller.createIncident(testIncidentCreateDTO);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertEquals(testIncidentDTO, response.getBody().getData());
+        assertEquals(testIdString, response.getBody().getData());
     }
 
     @Test
     void createIncident_WithInvalidData_ShouldReturnBadRequest() {
         // Arrange
-        when(validator.validate(any()))
+        when(validator.validate(any(AIIncidentCreateDTO.class)))
                 .thenReturn(new AIIncidentValidator.ValidationResult(false, "Title is required"));
 
         // Act
-        ResponseEntity<ApiResponse<AIIncidentDTO>> response = controller.createIncident(testIncidentDTO);
+        ResponseEntity<ApiResponse<String>> response = controller.createIncident(testIncidentCreateDTO);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertNull(response.getBody().getData());
+        assertEquals("Title is required", response.getBody().getMessage());
     }
 
     @Test
@@ -188,14 +195,14 @@ class AIIncidentControllerTest {
         doNothing().when(service).deleteIncident(testId);
 
         // Act
-        ResponseEntity<ApiResponse<Void>> response = controller.deleteIncident(testIdString);
+        ResponseEntity<ApiResponse<String>> response = controller.deleteIncident(testIdString);
 
         // Assert
         assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertNull(response.getBody().getData());
+        assertEquals(testIdString, response.getBody().getData());
     }
 
     @Test
@@ -204,26 +211,26 @@ class AIIncidentControllerTest {
         when(service.getIncidentById(testId)).thenReturn(Optional.empty());
 
         // Act
-        ResponseEntity<ApiResponse<Void>> response = controller.deleteIncident(testIdString);
+        ResponseEntity<ApiResponse<String>> response = controller.deleteIncident(testIdString);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertNull(response.getBody().getData());
+        assertEquals("Cannot delete, no incident found with id: " + testIdString, response.getBody().getMessage());
     }
 
     @Test
     void deleteIncident_WithInvalidFormat_ShouldReturnBadRequest() {
         // Act
-        ResponseEntity<ApiResponse<Void>> response = controller.deleteIncident("invalid-id");
+        ResponseEntity<ApiResponse<String>> response = controller.deleteIncident("invalid-id");
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertNull(response.getBody().getData());
+        assertEquals("Invalid ID format. Please provide a valid MongoDB ObjectId", response.getBody().getMessage());
     }
 }
