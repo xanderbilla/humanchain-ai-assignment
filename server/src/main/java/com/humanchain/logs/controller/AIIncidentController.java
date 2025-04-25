@@ -11,8 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -123,9 +125,33 @@ public class AIIncidentController {
                     .body(ApiResponse.success(incidentId, "Incident created successfully with id: " + incidentId));
         } catch (IllegalArgumentException e) {
             logger.error("Invalid severity value: {}", incidentDTO.getSeverity());
+            String allowedValues = Arrays.stream(AIIncident.Severity.values())
+                    .map(Enum::name)
+                    .collect(Collectors.joining(", "));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Invalid severity value. Allowed values are: LOW, MEDIUM, HIGH"));
+                    .body(ApiResponse.error("Invalid severity value. Allowed values are: " + allowedValues));
         }
+    }
+
+    /**
+     * Exception handler for JSON parsing errors
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<String>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex) {
+        logger.error("JSON parsing error: {}", ex.getMessage());
+
+        if (ex.getMessage() != null && ex.getMessage()
+                .contains("Cannot deserialize value of type `com.humanchain.logs.model.AIIncident$Severity`")) {
+            String allowedValues = Arrays.stream(AIIncident.Severity.values())
+                    .map(Enum::name)
+                    .collect(Collectors.joining(", "));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Invalid severity value. Allowed values are: " + allowedValues));
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Invalid request format: " + ex.getMessage()));
     }
 
     /**
