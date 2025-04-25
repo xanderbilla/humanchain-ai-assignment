@@ -1,5 +1,9 @@
 @echo off
 
+echo Current directory: %CD%
+echo Environment variables:
+set | findstr DOCKER
+
 REM Check if .env file exists
 if not exist .env (
     echo Error: .env file not found!
@@ -23,7 +27,19 @@ if "%DOCKER_APP_NAME%"=="" (
     exit /b 1
 )
 
+echo Running tests and building the application...
+cd server
+echo Current directory after cd: %CD%
+call mvn clean package -P test
+if %ERRORLEVEL% neq 0 (
+    echo Maven build failed
+    exit /b %ERRORLEVEL%
+)
+cd ..
+
+echo.
 echo Building Docker image...
+echo Docker build command: docker build -t %DOCKER_USERNAME%/%DOCKER_APP_NAME%:latest ./server/.
 docker build -t %DOCKER_USERNAME%/%DOCKER_APP_NAME%:latest ./server/.
 if %ERRORLEVEL% neq 0 (
     echo Docker build failed

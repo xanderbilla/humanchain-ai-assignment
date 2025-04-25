@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Enable debugging
+set -x
+
+echo "Current directory: $(pwd)"
+echo "Environment variables:"
+env | grep DOCKER
+
 # Check if .env file exists
 if [ ! -f .env ]; then
     echo "Error: .env file not found!"
@@ -7,8 +14,20 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load environment variables from .env file
-export $(grep -v '^#' .env | xargs)
+# Clean up the .env file by removing Windows line endings and comments
+TEMP_ENV=$(mktemp)
+sed 's/\r$//' .env | grep -v '^#' | grep -v '^$' > "$TEMP_ENV"
+
+# Load environment variables from the cleaned .env file
+while IFS='=' read -r key value; do
+    if [ -n "$key" ] && [ -n "$value" ]; then
+        # Remove any remaining whitespace
+        key=$(echo "$key" | tr -d '[:space:]')
+        value=$(echo "$value" | tr -d '[:space:]')
+        export "$key=$value"
+    fi
+done < "$TEMP_ENV"
+rm "$TEMP_ENV"
 
 # Check if required environment variables are set
 if [ -z "$DOCKER_USERNAME" ]; then
@@ -21,7 +40,18 @@ if [ -z "$DOCKER_APP_NAME" ]; then
     exit 1
 fi
 
-echo "Building Docker image..."
+echo "Running tests and building the application..."
+cd server
+echo "Current directory after cd: $(pwd)"
+mvn clean package -P test
+if [ $? -ne 0 ]; then
+    echo "Maven build failed"
+    exit $?
+fi
+cd ..
+
+echo -e "\nBuilding Docker image..."
+echo "Docker build command: docker build -t $DOCKER_USERNAME/$DOCKER_APP_NAME:latest ./server/."
 docker build -t $DOCKER_USERNAME/$DOCKER_APP_NAME:latest ./server/.
 if [ $? -ne 0 ]; then
     echo "Docker build failed"
