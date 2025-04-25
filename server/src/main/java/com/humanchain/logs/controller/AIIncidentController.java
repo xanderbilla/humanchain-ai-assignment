@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/api/v1/incidents")
+@RequestMapping("/incidents")
 public class AIIncidentController {
 
     private static final Logger logger = LoggerFactory.getLogger(AIIncidentController.class);
