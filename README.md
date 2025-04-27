@@ -82,12 +82,12 @@ docker-compose up --build
 
 ## 📡 Backend API Overview
 
-| Method | Endpoint                        | Description                  |
-|:------:|:---------------------------------|:------------------------------|
-| GET    | `/api/v1/incidents`               | Fetch all incidents           |
-| GET    | `/api/v1/incidents/{id}`           | Fetch a specific incident     |
-| POST   | `/api/v1/incidents`                | Create a new incident         |
-| DELETE | `/api/v1/incidents/{id}`           | Delete an incident            |
+| Method | Endpoint                 | Description               |
+| :----: | :----------------------- | :------------------------ |
+|  GET   | `/api/v1/incidents`      | Fetch all incidents       |
+|  GET   | `/api/v1/incidents/{id}` | Fetch a specific incident |
+|  POST  | `/api/v1/incidents`      | Create a new incident     |
+| DELETE | `/api/v1/incidents/{id}` | Delete an incident        |
 
 ### 📋 Quick Example: Creating an Incident
 
@@ -102,24 +102,23 @@ Content-Type: application/json
 }
 ```
 
-
 ### 🧹 Response Format
 
 ```json
 {
-    "success": true,
-    "message": "Successfully retrieved all incidents",
-    "data": [
-        {
-            "id": "680dc8e3759a9f060059df23",
-            "title": "AI Model Performance Degradation",
-            "description": "The sentiment analysis model is showing decreased accuracy in processing customer feedback",
-            "severity": "LOW",
-            "reportedAt": "2025-04-27T06:04:19.212"
-        }
-    ],
-    "timestamp": "2025-04-27T06:04:22.514472877",
-    "status": "SUCCESS"
+  "success": true,
+  "message": "Successfully retrieved all incidents",
+  "data": [
+    {
+      "id": "680dc8e3759a9f060059df23",
+      "title": "AI Model Performance Degradation",
+      "description": "The sentiment analysis model is showing decreased accuracy in processing customer feedback",
+      "severity": "LOW",
+      "reportedAt": "2025-04-27T06:04:19.212"
+    }
+  ],
+  "timestamp": "2025-04-27T06:04:22.514472877",
+  "status": "SUCCESS"
 }
 ```
 
@@ -153,10 +152,10 @@ A small but clean UI to:
 - Create new incident reports
 - (More features can be easily added!)
 
-| Route    | What It Does                   |
-|:---------|:--------------------------------|
-| `/`      | Lists all incidents             |
-| `/create`| Form to add a new incident       |
+| Route        | What It Does                             |
+| :----------- | :--------------------------------------- |
+| `/`          | Homepage nand display server status      |
+| `/incidents` | Lists all incidents and create incidents |
 
 ## 🛢️ MongoDB Schema
 
