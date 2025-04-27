@@ -1,6 +1,9 @@
 @echo off
 
-echo Current directory: %CD%
+REM Store the original directory
+set ORIGINAL_DIR=%CD%
+echo Original directory: %ORIGINAL_DIR%
+
 echo Environment variables:
 set | findstr DOCKER
 
@@ -14,7 +17,13 @@ if not exist .env (
 REM Load environment variables from .env file
 for /f "tokens=1,2 delims==" %%a in (.env) do (
     if "%%a"=="DOCKER_USERNAME" set DOCKER_USERNAME=%%b
-    if "%%a"=="DOCKER_APP_NAME" set DOCKER_APP_NAME=%%b
+    if "%%a"=="DOCKER_CLIENT_APP_NAME" set DOCKER_CLIENT_APP_NAME=%%b
+    if "%%a"=="DOCKER_SERVER_APP_NAME" set DOCKER_SERVER_APP_NAME=%%b
+    if "%%a"=="MONGODB_URI" set MONGODB_URI=%%b
+    if "%%a"=="CORS_ALLOWED_ORIGINS" set CORS_ALLOWED_ORIGINS=%%b
+    if "%%a"=="SERVER_PORT" set SERVER_PORT=%%b
+    if "%%a"=="API_URL" set API_URL=%%b
+    if "%%a"=="CLIENT_PORT" set CLIENT_PORT=%%b
 )
 
 REM Check if required environment variables are set
@@ -22,48 +31,82 @@ if "%DOCKER_USERNAME%"=="" (
     echo Error: DOCKER_USERNAME not set in .env file
     exit /b 1
 )
-if "%DOCKER_APP_NAME%"=="" (
-    echo Error: DOCKER_APP_NAME not set in .env file
+if "%DOCKER_CLIENT_APP_NAME%"=="" (
+    echo Error: DOCKER_CLIENT_APP_NAME not set in .env file
+    exit /b 1
+)
+if "%DOCKER_SERVER_APP_NAME%"=="" (
+    echo Error: DOCKER_SERVER_APP_NAME not set in .env file
+    exit /b 1
+)
+if "%MONGODB_URI%"=="" (
+    echo Error: MONGODB_URI not set in .env file
+    exit /b 1
+)
+if "%CORS_ALLOWED_ORIGINS%"=="" (
+    echo Error: CORS_ALLOWED_ORIGINS not set in .env file
+    exit /b 1
+)
+if "%SERVER_PORT%"=="" (
+    echo Error: SERVER_PORT not set in .env file
+    exit /b 1
+)
+if "%API_URL%"=="" (
+    echo Error: API_URL not set in .env file
+    exit /b 1
+)
+if "%CLIENT_PORT%"=="" (
+    echo Error: CLIENT_PORT not set in .env file
     exit /b 1
 )
 
-echo Running tests and building the application...
-cd server
-echo Current directory after cd: %CD%
-call mvn clean package -P test
-if %ERRORLEVEL% neq 0 (
-    echo Maven build failed
-    exit /b %ERRORLEVEL%
-)
-cd ..
-
 echo.
-echo Building Docker image...
-echo Docker build command: docker build -t %DOCKER_USERNAME%/%DOCKER_APP_NAME%:latest ./server/.
-docker build -t %DOCKER_USERNAME%/%DOCKER_APP_NAME%:latest ./server/.
+echo Building Server Docker image...
+echo Docker build command: docker build -t %DOCKER_USERNAME%/%DOCKER_SERVER_APP_NAME%:latest ./server/.
+docker build -t %DOCKER_USERNAME%/%DOCKER_SERVER_APP_NAME%:latest ./server/.
 if %ERRORLEVEL% neq 0 (
-    echo Docker build failed
+    echo Server Docker build failed
     exit /b %ERRORLEVEL%
 )
 
 echo.
-echo Pushing image to Docker Hub...
+echo Building Client Docker image...
+echo Docker build command: docker build -t %DOCKER_USERNAME%/%DOCKER_CLIENT_APP_NAME%:latest ./client/.
+docker build -t %DOCKER_USERNAME%/%DOCKER_CLIENT_APP_NAME%:latest ./client/.
+if %ERRORLEVEL% neq 0 (
+    echo Client Docker build failed
+    exit /b %ERRORLEVEL%
+)
+
+echo.
+echo Pushing images to Docker Hub...
 docker login
 if %ERRORLEVEL% neq 0 (
     echo Docker login failed
     exit /b %ERRORLEVEL%
 )
 
-docker push %DOCKER_USERNAME%/%DOCKER_APP_NAME%:latest
+docker push %DOCKER_USERNAME%/%DOCKER_SERVER_APP_NAME%:latest
 if %ERRORLEVEL% neq 0 (
-    echo Docker push failed
+    echo Server Docker push failed
+    exit /b %ERRORLEVEL%
+)
+
+docker push %DOCKER_USERNAME%/%DOCKER_CLIENT_APP_NAME%:latest
+if %ERRORLEVEL% neq 0 (
+    echo Client Docker push failed
     exit /b %ERRORLEVEL%
 )
 
 echo.
-echo Starting the application...
-docker-compose up --remove-orphans
+echo Starting the application in detached mode...
+docker-compose up -d --remove-orphans
 if %ERRORLEVEL% neq 0 (
     echo Docker compose failed
     exit /b %ERRORLEVEL%
-) 
+)
+
+echo Application is running in the background. Press Ctrl+C to stop.
+:loop
+timeout /t 1 /nobreak >nul
+goto loop 

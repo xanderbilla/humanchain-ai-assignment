@@ -3,7 +3,22 @@
 # Enable debugging
 set -x
 
-echo "Current directory: $(pwd)"
+# Store the original directory
+ORIGINAL_DIR=$(pwd)
+echo "Original directory: $ORIGINAL_DIR"
+
+# Function to clean up on exit
+cleanup() {
+    echo "Cleaning up..."
+    cd "$ORIGINAL_DIR"
+    echo "Stopping docker-compose..."
+    docker-compose down
+    exit 0
+}
+
+# Set up trap to ensure cleanup runs on script exit
+trap cleanup SIGINT SIGTERM
+
 echo "Environment variables:"
 env | grep DOCKER
 
@@ -30,50 +45,59 @@ done < "$TEMP_ENV"
 rm "$TEMP_ENV"
 
 # Check if required environment variables are set
-if [ -z "$DOCKER_USERNAME" ]; then
-    echo "Error: DOCKER_USERNAME not set in .env file"
-    exit 1
-fi
+required_vars=("DOCKER_USERNAME" "DOCKER_CLIENTAPP_NAME" "DOCKER_SERVER_APP_NAME" "MONGODB_URI" "CORS_ALLOWED_ORIGINS" "SERVER_PORT" "API_URL" "CLIENT_PORT")
 
-if [ -z "$DOCKER_APP_NAME" ]; then
-    echo "Error: DOCKER_APP_NAME not set in .env file"
-    exit 1
-fi
+for var in "${required_vars[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "Error: $var not set in .env file"
+        exit 1
+    fi
+done
 
-echo "Running tests and building the application..."
-cd server
-echo "Current directory after cd: $(pwd)"
-mvn clean package -P test
+echo -e "\nBuilding Server Docker image..."
+echo "Docker build command: docker build -t $DOCKER_USERNAME/$DOCKER_SERVER_APP_NAME:latest ./server/."
+docker build -t $DOCKER_USERNAME/$DOCKER_SERVER_APP_NAME:latest ./server/.
 if [ $? -ne 0 ]; then
-    echo "Maven build failed"
-    exit $?
-fi
-cd ..
-
-echo -e "\nBuilding Docker image..."
-echo "Docker build command: docker build -t $DOCKER_USERNAME/$DOCKER_APP_NAME:latest ./server/."
-docker build -t $DOCKER_USERNAME/$DOCKER_APP_NAME:latest ./server/.
-if [ $? -ne 0 ]; then
-    echo "Docker build failed"
+    echo "Server Docker build failed"
     exit $?
 fi
 
-echo -e "\nPushing image to Docker Hub..."
+echo -e "\nBuilding Client Docker image..."
+echo "Docker build command: docker build -t $DOCKER_USERNAME/$DOCKER_CLIENT_APP_NAME:latest ./client/."
+docker build -t $DOCKER_USERNAME/$DOCKER_CLIENT_APP_NAME:latest ./client/.
+if [ $? -ne 0 ]; then
+    echo "Client Docker build failed"
+    exit $?
+fi
+
+echo -e "\nPushing images to Docker Hub..."
 docker login
 if [ $? -ne 0 ]; then
     echo "Docker login failed"
     exit $?
 fi
 
-docker push $DOCKER_USERNAME/$DOCKER_APP_NAME:latest
+docker push $DOCKER_USERNAME/$DOCKER_SERVER_APP_NAME:latest
 if [ $? -ne 0 ]; then
-    echo "Docker push failed"
+    echo "Server Docker push failed"
     exit $?
 fi
 
-echo -e "\nStarting the application..."
-docker-compose up --remove-orphans
+docker push $DOCKER_USERNAME/$DOCKER_CLIENT_APP_NAME:latest
+if [ $? -ne 0 ]; then
+    echo "Client Docker push failed"
+    exit $?
+fi
+
+echo -e "\nStarting the application in detached mode..."
+docker-compose up -d --remove-orphans
 if [ $? -ne 0 ]; then
     echo "Docker compose failed"
     exit $?
-fi 
+fi
+
+echo "Application is running in the background. Press Ctrl+C to stop."
+# Keep the script running and handle Ctrl+C
+while true; do
+    sleep 1
+done 
