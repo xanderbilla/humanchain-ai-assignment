@@ -71,8 +71,8 @@ if %ERRORLEVEL% neq 0 (
 
 echo.
 echo Building Client Docker image...
-echo Docker build command: docker build -t %DOCKER_USERNAME%/%DOCKER_CLIENT_APP_NAME%:latest ./client/.
-docker build -t %DOCKER_USERNAME%/%DOCKER_CLIENT_APP_NAME%:latest ./client/.
+echo Docker build command: docker build -t %DOCKER_USERNAME%/%DOCKER_CLIENT_APP_NAME%:latest ./ui/.
+docker build -t %DOCKER_USERNAME%/%DOCKER_CLIENT_APP_NAME%:latest ./ui/.
 if %ERRORLEVEL% neq 0 (
     echo Client Docker build failed
     exit /b %ERRORLEVEL%
