@@ -1,196 +1,212 @@
-# AI Safety Incident Log API
+# AI Safety Incident Log System
 
-A RESTful API service for logging and managing AI safety incidents, developed as part of HumanChain AI's backend intern take-home assignment.
+A project for logging and managing AI safety incidents, built as part of HumanChain AI’s backend intern assignment.
 
-## Project Overview
+## ✨ About the Project
 
-This project implements a backend service to log and manage hypothetical AI safety incidents. It's built using:
+This project brings together a simple but powerful system for tracking AI safety incidents.  
+It’s made up of:
 
-- **Language**: Java
-- **Framework**: Spring Boot
-- **Database**: MongoDB
-- **API Style**: RESTful
+- A **Spring Boot** backend (Java 17) for handling APIs
+- A **Next.js** frontend for a clean, minimal interface (to test backend)
+- **MongoDB** to store and manage incident data
+- **Docker** and **Docker Compose** to run everything smoothly together
 
-## Project Structure
+It’s fully containerized, quick to set up, and easy to extend.
+
+## 📁 Folder Structure
 
 ```
-src/main/java/com/humanchain/logs/
-├── config/         # Configuration classes
-├── controller/     # REST API endpoints
-├── dto/           # Data Transfer Objects
-├── model/         # Domain models
-├── repository/    # Data access layer
-├── service/       # Business logic
-├── serializer/    # Custom serialization
-└── validation/    # Input validation
+humanchain-ai-assignment/
+├── server/              # Backend - Spring Boot app
+├── client/              # Frontend - Next.js app (Shadcn UI)
+├── .env                 # Environment variables
+├── .gitignore
+├── .gitattributes
+├── build-and-run.bat    # Windows quick start script
+├── build-and-run.sh     # Linux/Mac quick start script
+├── docker-compose.yml   # Docker orchestration
+├── LICENSE
+└── README.md            # You're here :)
 ```
 
-## Prerequisites
+## 🛠️ Getting Started
 
-- Java 17 or higher
-- Maven
-- Docker and Docker Compose
-- MongoDB (will be started via Docker)
+### 1. Clone the Repo
 
-## Setup and Installation
+```bash
+git clone https://github.com/xanderbilla/humanchain-ai-assignment
+cd humanchain-ai-assignment
+```
 
-1. **Clone the repository**
+### 2. Set Up Environment Variables
 
-   ```bash
-   git clone humanchain-ai-assignment
-   cd humanchain-ai-assignment
-   ```
+Create a `.env` file in the root directory with the following keys:
 
-2. **Create environment file**
-   Create a `.env` file in the root directory with the following content:
+```
+MONGODB_URI=your-mongodb-uri
+DOCKER_USERNAME=your-dockerhub-username
+DOCKER_CLIENT_APP_NAME=client-image-name
+DOCKER_SERVER_APP_NAME=server-image-name
+CORS_ALLOWED_ORIGINS=http://localhost:CLIENT_PORT
+SERVER_PORT=your-backend-port
+API_URL=http://localhost:SERVER_PORT/api/v1
+NEXT_PUBLIC_API_BASE_URL=http://localhost:SERVER_PORT/api/v1
+CLIENT_PORT=your-frontend-port
+```
 
-   ```
-    MONGODB_URI=mongodb+srv://....
-    DOCKER_USERNAME=your-dockerhub-username
-    DOCKER_APP_NAME=log-server-app
-    CORS_ALLOWED_ORIGINS=http://localhost:3000
-    APP_PORT=port-on-which-you-want-to-access-app
-   ```
+> Example: `SERVER_PORT=8080`, `CLIENT_PORT=3000`
 
-3. **Build and Run**
+## 🚀 Running Everything
 
-   ```bash
-   # On Windows
-   build-and-run.bat
+The easiest way:
 
-   # On Linux/Mac
-   ./build-and-run.sh
-   ```
+```bash
+# Windows
+build-and-run.bat
 
-The application will be available at `http://localhost:APP_PORT`
+# Linux/Mac
+./build-and-run.sh
+```
 
-## API Reference
+Or manually if you prefer:
 
-#### Get all incidents
+```bash
+docker-compose up --build
+```
+
+## 🌐 Access Points
+
+- Backend API → [http://localhost:SERVER_PORT](http://localhost:SERVER_PORT)
+- Frontend Client → [http://localhost:CLIENT_PORT](http://localhost:CLIENT_PORT)
+
+## 📡 Backend API Overview
+
+| Method | Endpoint                        | Description                  |
+|:------:|:---------------------------------|:------------------------------|
+| GET    | `/api/v1/incidents`               | Fetch all incidents           |
+| GET    | `/api/v1/incidents/{id}`           | Fetch a specific incident     |
+| POST   | `/api/v1/incidents`                | Create a new incident         |
+| DELETE | `/api/v1/incidents/{id}`           | Delete an incident            |
+
+### 📋 Quick Example: Creating an Incident
 
 ```http
-  GET /api/v1/incidents
+POST /api/v1/incidents
+Content-Type: application/json
+
+{
+  "title": "AI Model Misbehaving",
+  "description": "Generated unsafe content without prompt.",
+  "severity": "High"
+}
 ```
 
-| Parameter | Type   | Description            |
-| :-------- | :----- | :--------------------- |
-| `none`    | `none` | No parameters required |
 
-#### Get incident by ID
+### 🧹 Response Format
 
-```http
-  GET /api/v1/incidents/${id}
+```json
+{
+    "success": true,
+    "message": "Successfully retrieved all incidents",
+    "data": [
+        {
+            "id": "680dc8e3759a9f060059df23",
+            "title": "AI Model Performance Degradation",
+            "description": "The sentiment analysis model is showing decreased accuracy in processing customer feedback",
+            "severity": "LOW",
+            "reportedAt": "2025-04-27T06:04:19.212"
+        }
+    ],
+    "timestamp": "2025-04-27T06:04:22.514472877",
+    "status": "SUCCESS"
+}
 ```
-
-| Parameter | Type     | Description                                             |
-| :-------- | :------- | :------------------------------------------------------ |
-| `id`      | `string` | **Required**. MongoDB ObjectId of the incident to fetch |
-
-#### Create incident
-
-```http
-  POST /api/v1/incidents
-```
-
-| Parameter     | Type     | Description                                        |
-| :------------ | :------- | :------------------------------------------------- |
-| `title`       | `string` | **Required**. Short summary of the incident        |
-| `description` | `string` | **Required**. Detailed description of the incident |
-| `severity`    | `string` | **Required**. Severity level (Low, Medium, High)   |
-
-#### Delete incident
-
-```http
-  DELETE /api/v1/incidents/${id}
-```
-
-| Parameter | Type     | Description                                              |
-| :-------- | :------- | :------------------------------------------------------- |
-| `id`      | `string` | **Required**. MongoDB ObjectId of the incident to delete |
-
-## Error Handling
-
-The API implements comprehensive error handling for:
-
-- Invalid input data
-- Resource not found
-- Server errors
-- Validation errors
-
-Error responses follow this format:
 
 ```json
 {
   "timestamp": "2024-04-24T12:00:00Z",
   "status": 400,
   "error": "Bad Request",
-  "message": "Detailed error message",
+  "message": "Detailed explanation here",
   "path": "/api/v1/incidents"
 }
 ```
 
-## Database Schema
+### 🧹 Error Response Format
 
-The MongoDB collection `incidents` uses the following schema:
+```json
+{
+  "timestamp": "2024-04-24T12:00:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Detailed explanation here",
+  "path": "/api/v1/incidents"
+}
+```
+
+## 🖥️ Frontend (Next.js + Shadcn UI)
+
+A small but clean UI to:
+
+- View all incidents
+- Create new incident reports
+- (More features can be easily added!)
+
+| Route    | What It Does                   |
+|:---------|:--------------------------------|
+| `/`      | Lists all incidents             |
+| `/create`| Form to add a new incident       |
+
+## 🛢️ MongoDB Schema
+
+Each `incident` document looks like:
 
 ```json
 {
   "id": "String",
   "title": "String",
   "description": "String",
-  "severity": "String",
+  "severity": "Low | Medium | High",
   "reportedAt": "DateTime"
 }
 ```
 
-## Design Decisions
+## 🛠️ Development Tips
 
-1. **Technology Stack**:
-
-   - Spring Boot for robust backend development
-   - MongoDB for flexible document storage
-   - Docker for containerization and easy deployment
-
-2. **API Design**:
-
-   - RESTful principles
-   - Versioned API endpoints (/api/v1/)
-   - Consistent error handling
-   - Input validation
-
-3. **Security**:
-   - Environment-based configuration
-   - Input sanitization
-   - Proper error handling
-
-## Development
-
-### Running Tests
+### Backend
 
 ```bash
+cd server/
+mvn clean package
 mvn test
 ```
 
-### Building Locally
+### Frontend
 
 ```bash
-mvn clean package
+cd client/
+npm install
+npm run dev
 ```
 
-### Running with Docker
+## 🔒 Security Practices
 
-```bash
-docker-compose up
-```
+- Environment-based configuration (no hardcoding secrets)
+- Input validation and sanitization
+- Proper error handling
+- CORS restrictions
+- Dockerized for safe deployments
 
-## Author
+## 👨‍💻 Author
 
+Made with care by  
 [**Vikas Singh**](https://github.com/xanderbilla)
 
-## License
+## 📜 License
 
-This project is proprietary and confidential. It was developed as part of HumanChain AI's backend intern take-home assignment. While the implementation was created by the developer, the assignment requirements and specifications remain the property of HumanChain AI.
+This project is confidential and was built as part of an assignment for **HumanChain AI**.  
+All rights related to assignment requirements and specifications are owned by HumanChain AI.  
+Unauthorized copying or use without written permission is prohibited.
 
-**IMPORTANT**: This code and its associated documentation are subject to the terms of the assignment. Unauthorized copying, distribution, or use of this project without explicit written permission from HumanChain AI is strictly prohibited.
-
-For detailed terms and conditions, please refer to the [LICENSE](LICENSE) file.
+(Full terms in the [LICENSE](LICENSE) file.)
