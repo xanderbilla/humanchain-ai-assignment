@@ -45,7 +45,7 @@ done < "$TEMP_ENV"
 rm "$TEMP_ENV"
 
 # Check if required environment variables are set
-required_vars=("DOCKER_USERNAME" "DOCKER_CLIENTAPP_NAME" "DOCKER_SERVER_APP_NAME" "MONGODB_URI" "CORS_ALLOWED_ORIGINS" "SERVER_PORT" "API_URL" "CLIENT_PORT")
+required_vars=("DOCKER_USERNAME" "DOCKER_CLIENT_APP_NAME" "DOCKER_SERVER_APP_NAME" "CORS_ALLOWED_ORIGINS")
 
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then

@@ -19,11 +19,7 @@ for /f "tokens=1,2 delims==" %%a in (.env) do (
     if "%%a"=="DOCKER_USERNAME" set DOCKER_USERNAME=%%b
     if "%%a"=="DOCKER_CLIENT_APP_NAME" set DOCKER_CLIENT_APP_NAME=%%b
     if "%%a"=="DOCKER_SERVER_APP_NAME" set DOCKER_SERVER_APP_NAME=%%b
-    if "%%a"=="MONGODB_URI" set MONGODB_URI=%%b
     if "%%a"=="CORS_ALLOWED_ORIGINS" set CORS_ALLOWED_ORIGINS=%%b
-    if "%%a"=="SERVER_PORT" set SERVER_PORT=%%b
-    if "%%a"=="API_URL" set API_URL=%%b
-    if "%%a"=="CLIENT_PORT" set CLIENT_PORT=%%b
 )
 
 REM Check if required environment variables are set
@@ -39,24 +35,8 @@ if "%DOCKER_SERVER_APP_NAME%"=="" (
     echo Error: DOCKER_SERVER_APP_NAME not set in .env file
     exit /b 1
 )
-if "%MONGODB_URI%"=="" (
-    echo Error: MONGODB_URI not set in .env file
-    exit /b 1
-)
 if "%CORS_ALLOWED_ORIGINS%"=="" (
     echo Error: CORS_ALLOWED_ORIGINS not set in .env file
-    exit /b 1
-)
-if "%SERVER_PORT%"=="" (
-    echo Error: SERVER_PORT not set in .env file
-    exit /b 1
-)
-if "%API_URL%"=="" (
-    echo Error: API_URL not set in .env file
-    exit /b 1
-)
-if "%CLIENT_PORT%"=="" (
-    echo Error: CLIENT_PORT not set in .env file
     exit /b 1
 )
 

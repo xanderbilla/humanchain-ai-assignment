@@ -44,18 +44,11 @@ cd humanchain-ai-assignment
 Create a `.env` file in the root directory with the following keys:
 
 ```
-MONGODB_URI=your-mongodb-uri
 DOCKER_USERNAME=your-dockerhub-username
-DOCKER_CLIENT_APP_NAME=client-image-name
-DOCKER_SERVER_APP_NAME=server-image-name
-CORS_ALLOWED_ORIGINS=http://localhost:CLIENT_PORT
-SERVER_PORT=your-backend-port
-API_URL=http://localhost:SERVER_PORT/api/v1
-NEXT_PUBLIC_API_BASE_URL=http://localhost:SERVER_PORT/api/v1
-CLIENT_PORT=your-frontend-port
+DOCKER_CLIENT_APP_NAME=logs-client
+DOCKER_SERVER_APP_NAME=logs-server
+CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
-
-> Example: `SERVER_PORT=8080`, `CLIENT_PORT=3000`
 
 ## 🚀 Running Everything
 
