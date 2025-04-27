@@ -63,8 +63,8 @@ if [ $? -ne 0 ]; then
 fi
 
 echo -e "\nBuilding Client Docker image..."
-echo "Docker build command: docker build -t $DOCKER_USERNAME/$DOCKER_CLIENT_APP_NAME:latest ./client/."
-docker build -t $DOCKER_USERNAME/$DOCKER_CLIENT_APP_NAME:latest ./client/.
+echo "Docker build command: docker build -t $DOCKER_USERNAME/$DOCKER_CLIENT_APP_NAME:latest ./ui/."
+docker build -t $DOCKER_USERNAME/$DOCKER_CLIENT_APP_NAME:latest ./ui/.
 if [ $? -ne 0 ]; then
     echo "Client Docker build failed"
     exit $?
