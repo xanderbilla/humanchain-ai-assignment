@@ -23,8 +23,6 @@ humanchain-ai-assignment/
 ├── .env                 # Environment variables
 ├── .gitignore
 ├── .gitattributes
-├── build-and-run.bat    # Windows quick start script
-├── build-and-run.sh     # Linux/Mac quick start script
 ├── docker-compose.yml   # Docker orchestration
 ├── LICENSE
 └── README.md            # You're here :)
@@ -61,7 +59,7 @@ docker-compose up --build
 
 ## 🌐 Access Points
 
-- Backend API → [http://localhost:8080/api/v1](http://localhost:8080/api/v1/health)
+- Backend API → [http://localhost:8080](http://localhost:8080)
 - Frontend Client → [http://localhost:CLIENT_PORT](http://localhost:CLIENT_PORT)
 
 ## 📡 Backend API Overview
