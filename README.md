@@ -48,6 +48,7 @@ DOCKER_USERNAME=your-dockerhub-username
 DOCKER_CLIENT_APP_NAME=logs-client
 DOCKER_SERVER_APP_NAME=logs-server
 CORS_ALLOWED_ORIGINS=http://localhost:3000
+CLIENT_PORT=3000
 ```
 
 ## 🚀 Running Everything
@@ -55,22 +56,12 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000
 The easiest way:
 
 ```bash
-# Windows
-build-and-run.bat
-
-# Linux/Mac
-./build-and-run.sh
-```
-
-Or manually if you prefer:
-
-```bash
 docker-compose up --build
 ```
 
 ## 🌐 Access Points
 
-- Backend API → [http://localhost:SERVER_PORT](http://localhost:SERVER_PORT)
+- Backend API → [http://localhost:8080/api/v1](http://localhost:8080/api/v1/health)
 - Frontend Client → [http://localhost:CLIENT_PORT](http://localhost:CLIENT_PORT)
 
 ## 📡 Backend API Overview
