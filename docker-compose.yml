@@ -8,29 +8,46 @@ services:
     networks:
       - logs-network
 
-  logs-server-app:
-    image: ${DOCKER_USERNAME}/${DOCKER_SERVER_APP_NAME}:latest
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: ${DOCKER_SERVER_APP_NAME:-logs-server}
     ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    networks:
-      - logs-network
-    depends_on:
-      - mongodb
+      - 8080:8080
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/logs
-
-  logs-client-app:
-    image: ${DOCKER_USERNAME}/${DOCKER_CLIENT_APP_NAME}:latest
-    ports:
-      - "3000:3000"
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
     env_file:
       - .env
+    depends_on:
+      - mongodb
     networks:
       - logs-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${SERVER_PORT:-8080}/api/v1/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: ${DOCKER_CLIENT_APP_NAME:-logs-frontend}
+    ports:
+      - "${CLIENT_PORT:-3000}:3000"
     depends_on:
-      - logs-server-app
+      - backend
+    networks:
+      - logs-network
 
 networks:
   logs-network:
