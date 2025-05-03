@@ -23,7 +23,7 @@ export function Navbar() {
           </div>
           <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
             <a
-              href="https://github.com/yourusername/logs-server"
+              href="https://github.com/xanderbilla/humanchain-ai-assignment"
               target="_blank"
               rel="noopener noreferrer"
               className="relative h-6 w-6"
